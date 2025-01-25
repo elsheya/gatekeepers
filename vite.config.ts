@@ -17,4 +17,5 @@ export default defineConfig({
       external: ['lucide-react'],
     },
   },
+  base: './',
 });
