@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useTicketStore } from './lib/store';
 import { useToast } from './hooks/use-toast';
+import { getSession } from './lib/auth';
 
 function App() {
   const { session, loading, signOut } = useAuth();
@@ -197,11 +198,11 @@ function App() {
   if (!session) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
-        <div className="container mx-auto px-4 py-8 relative flex flex-col items-center justify-center">
+        <div className="container mx-auto px-4 py-8 relative">
           <img
             src="https://www.gatekeeper-systems.com/wp-content/uploads/2021/05/Gatekeeper-Logo-with-USP3.png"
             alt="Gatekeeper Logo"
-            className="h-12 mb-4"
+            className="absolute top-4 left-4 h-12"
           />
           <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
             Customer Service Portal
