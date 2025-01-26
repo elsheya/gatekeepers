@@ -57,37 +57,36 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <div className="flex justify-center p-4">
-      <Card className="p-6 w-full max-w-sm lg:max-w-md xl:max-w-lg lg:p-8 xl:p-10"> {/* Responsive padding and width */}
-        <div className="flex flex-col items-center justify-center">
-          <h2 className="text-2xl font-bold mb-4 lg:text-3xl xl:text-4xl">Sign In</h2> {/* Responsive font size */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register('email', { required: true })}
-                className="h-7 px-2 py-0.5"
-              />
-              {formState.errors?.email && <span className="text-sm text-red-500">This field is required</span>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register('password', { required: true })}
-                className="h-7 px-2 py-0.5"
-              />
-              {formState.errors?.password && <span className="text-sm text-red-500">This field is required</span>}
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-        </div>
-      </Card>
-    </div>
+    <Card className="p-6 w-full max-w-sm">
+      <div className="flex flex-col items-center justify-center">
+        {/* Add the "Customer Service Portal" heading here */}
+        <h2 className="text-2xl font-bold mb-4">Customer Service Portal</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register('email', { required: true })}
+              className="h-7 px-2 py-0.5"
+            />
+            {formState.errors?.email && <span className="text-sm text-red-500">This field is required</span>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              {...register('password', { required: true })}
+              className="h-7 px-2 py-0.5"
+            />
+            {formState.errors?.password && <span className="text-sm text-red-500">This field is required</span>}
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </Button>
+        </form>
+      </div>
+    </Card>
   );
 }
