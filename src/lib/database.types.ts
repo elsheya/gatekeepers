@@ -1,3 +1,4 @@
+
 export type Json =
   | string
   | number
@@ -24,6 +25,7 @@ export interface Database {
           representativeName: string
           createdAt: string
           updatedAt: string
+          closedAt: string | null
           comments: Json[] | null
         }
         Insert: {
@@ -39,6 +41,7 @@ export interface Database {
           representativeName: string
           createdAt?: string
           updatedAt?: string
+          closedAt?: string | null
           comments?: Json[] | null
         }
         Update: {
@@ -51,24 +54,4 @@ export interface Database {
           priority?: string
           notified?: boolean
           notes?: string | null
-          representativeName?: string
-          createdAt?: string
-          updatedAt?: string
-          comments?: Json[] | null
-        }
-        }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+          representativeName?:

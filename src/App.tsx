@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { CustomerServiceForm } from './components/CustomerServiceForm';
 import { Dashboard } from './components/Dashboard';
@@ -16,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { useTicketStore } from './lib/store';
 import { useToast } from './hooks/use-toast';
 import { getSession } from './lib/auth';
+import { AllTickets } from './components/AllTickets';
 
 function App() {
   const { session, loading, signOut } = useAuth();
@@ -232,9 +234,10 @@ function App() {
         </h1>
         
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="new-ticket">New Ticket</TabsTrigger>
+            <TabsTrigger value="all-tickets">All Tickets</TabsTrigger>
             <TabsTrigger value="admin">Admin</TabsTrigger>
           </TabsList>
           
@@ -247,6 +250,12 @@ function App() {
           <TabsContent value="new-ticket">
             <Card className="p-8 max-w-3xl mx-auto">
               <CustomerServiceForm onSubmit={handleSubmit} />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="all-tickets">
+            <Card className="p-6">
+              <AllTickets tickets={tickets} onTicketClick={handleTicketClick} />
             </Card>
           </TabsContent>
           
@@ -282,3 +291,4 @@ function App() {
 }
 
 export default App;
+

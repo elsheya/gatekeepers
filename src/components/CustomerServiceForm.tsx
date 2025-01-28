@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Ticket } from '../lib/types';
+import type { Ticket, TicketPriority } from '../lib/types';
 import { cn, generateTicketNumber } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,6 +22,7 @@ export function CustomerServiceForm({ onSubmit }: Props) {
   const [notified, setNotified] = useState(false);
   const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<Ticket>();
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined);
+  const [selectedPriority, setSelectedPriority] = useState<TicketPriority>('medium');
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submittedTicketNumber, setSubmittedTicketNumber] = useState('');
@@ -51,7 +53,7 @@ export function CustomerServiceForm({ onSubmit }: Props) {
       status: selectedStatus || 'Open',
       comments: [],
       representativeName: data.representativeName,
-      priority: 'medium',
+      priority: selectedPriority,
       notes: data.notes || null,
     };
 
@@ -115,6 +117,7 @@ export function CustomerServiceForm({ onSubmit }: Props) {
       reset();
       setNotified(false);
       setSelectedStatus(undefined);
+      setSelectedPriority('medium');
       toast({
         title: 'Ticket submitted successfully',
         description: `Your ticket number is: ${ticketNumber}`,
@@ -133,9 +136,9 @@ export function CustomerServiceForm({ onSubmit }: Props) {
 
   const getStatusColor = (status: string | undefined) => {
     const colors = {
-      Open: 'bg-green-100 text-green-800',
+      Open: 'bg-red-100 text-red-800',
       'In Progress': 'bg-yellow-100 text-yellow-800',
-      Closed: 'bg-red-100 text-red-800',
+      Closed: 'bg-green-100 text-green-800',
     };
     return colors[status as keyof typeof colors] || '';
   };
@@ -204,6 +207,27 @@ export function CustomerServiceForm({ onSubmit }: Props) {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="priority">Priority</Label>
+          <Select
+            onValueChange={(value) => {
+              setSelectedPriority(value as TicketPriority);
+              register('priority').onChange({ target: { value } });
+            }}
+          >
+            <SelectTrigger className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+              <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="urgent">Urgent</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.priority && <span className="text-sm text-red-500">This field is required</span>}
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="issueDescription">Issue Description</Label>
           <div className="relative">
             <Textarea
@@ -263,3 +287,4 @@ export function CustomerServiceForm({ onSubmit }: Props) {
     </>
   );
 }
+

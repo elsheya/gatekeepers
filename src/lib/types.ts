@@ -1,3 +1,4 @@
+
 export type User = {
   id: string;
   email: string;
@@ -31,5 +32,7 @@ export type Ticket = {
   representativeName: string;
   createdAt: string;
   updatedAt: string;
+  closedAt?: string;
   comments: TicketComment[];
 };
+

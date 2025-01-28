@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Table,
@@ -15,13 +16,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil, Trash2 } from './ui/icons';
-import type { Ticket } from '../lib/types';
+import type { Ticket, TicketPriority } from '../lib/types';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { MessageSquareIcon } from './ui/icons';
 import { checkAdminPassword } from '@/lib/auth';
 import { useTicketStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter } from './ui/alert-dialog';
 
 type Props = {
   tickets: Ticket[];
@@ -40,6 +43,9 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { setTickets, deleteTicket } = useTicketStore();
+  const { toast } = useToast();
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
 
   const handleAdminLogin = async () => {
     setLoading(true);
@@ -86,23 +92,51 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
   };
 
   const handleDeleteTicket = async (id: string) => {
+    setTicketToDelete(id);
+    setDeleteConfirmationOpen(true);
+  };
+
+  const confirmDeleteTicket = async () => {
+    if (!ticketToDelete) return;
+    setDeleteConfirmationOpen(false);
     if (!supabase) {
       console.error('Supabase client is not initialized.');
       return;
     }
     try {
-      console.log('Attempting to delete ticket from Supabase with id:', id);
-      const { error } = await supabase.from('tickets').delete().eq('id', Number(id));
+      console.log('Attempting to delete ticket from Supabase with id:', ticketToDelete);
+      const { error } = await supabase.from('tickets').delete().eq('id', ticketToDelete);
       if (error) {
         console.error('Error deleting ticket:', error);
+        toast({
+          title: 'Error deleting ticket',
+          description: 'Could not delete ticket. Please try again.',
+          variant: 'destructive',
+        });
       } else {
-        console.log('Ticket deleted from Supabase successfully with id:', id);
-        deleteTicket(id);
+        console.log('Ticket deleted from Supabase successfully with id:', ticketToDelete);
+        deleteTicket(ticketToDelete);
         await fetchTickets();
+        toast({
+          title: 'Ticket deleted',
+          description: 'This action is irreversible.',
+        });
       }
     } catch (error) {
       console.error('Unexpected error:', error);
+      toast({
+        title: 'Unexpected error',
+        description: 'Please try again later.',
+        variant: 'destructive',
+      });
+    } finally {
+      setTicketToDelete(null);
     }
+  };
+
+  const cancelDeleteTicket = () => {
+    setTicketToDelete(null);
+    setDeleteConfirmationOpen(false);
   };
 
   const fetchTickets = async () => {
@@ -119,16 +153,32 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
       }
     } catch (error) {
       console.error('Unexpected error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      Open: 'bg-green-100 text-green-800',
+      Open: 'bg-red-100 text-red-800',
       'In Progress': 'bg-yellow-100 text-yellow-800',
-      Closed: 'bg-red-100 text-red-800',
+      Closed: 'bg-green-100 text-green-800',
     };
     return colors[status as keyof typeof colors] || '';
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const colors = {
+      low: 'bg-green-100 text-green-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      high: 'bg-orange-100 text-orange-800',
+      urgent: 'bg-red-100 text-red-800',
+    };
+    return colors[priority as keyof typeof colors] || '';
+  };
+
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
   const getNotifiedColor = (notified: boolean) => {
@@ -165,6 +215,8 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
             <TableHead>Status</TableHead>
             <TableHead>Notified</TableHead>
             <TableHead>Representative Initial</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Closed At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -187,6 +239,12 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
                 </span>
               </TableCell>
               <TableCell>{ticket.representativeName}</TableCell>
+              <TableCell>
+                <span className={cn('px-2 py-1 rounded-full text-sm', getPriorityColor(ticket.priority))}>
+                  {capitalizeFirstLetter(ticket.priority)}
+                </span>
+              </TableCell>
+              <TableCell>{ticket.status === 'Closed' ? new Date(ticket.updatedAt).toLocaleDateString() : 'N/A'}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button size="sm" variant="outline" onClick={() => handleEdit(ticket)}>
@@ -271,6 +329,24 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={editingTicket.priority}
+                  onValueChange={value => setEditingTicket(prev => prev ? { ...prev, priority: value as TicketPriority } : null)}
+                >
+                  <SelectTrigger className={cn(getPriorityColor(editingTicket.priority))}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="issueDescription">Issue Description</Label>
                 <Textarea
                   id="issueDescription"
@@ -327,7 +403,22 @@ export function AdminDashboard({ tickets, onDelete, onUpdate }: Props) {
           )}
         </DialogContent>
       </Dialog>
+      <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this ticket? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDeleteTicket}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTicket}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   </div>
   );
 }
+
