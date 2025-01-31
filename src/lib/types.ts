@@ -1,4 +1,3 @@
-
 export type User = {
   id: string;
   email: string;
@@ -35,4 +34,3 @@ export type Ticket = {
   closedAt?: string;
   comments: TicketComment[];
 };
-

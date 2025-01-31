@@ -7,6 +7,8 @@ interface TicketState {
   addTicket: (ticket: Ticket) => void;
   updateTicket: (updatedTicket: Ticket) => void;
   deleteTicket: (id: string) => void;
+  darkMode: boolean;
+  setDarkMode: (darkMode: boolean) => void;
 }
 
 export const useTicketStore = create<TicketState>((set) => ({
@@ -24,4 +26,6 @@ export const useTicketStore = create<TicketState>((set) => ({
     set((state) => ({
       tickets: state.tickets.filter((ticket) => ticket.id !== id),
     })),
+    darkMode: localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+    setDarkMode: (darkMode) => set({ darkMode }),
 }));
